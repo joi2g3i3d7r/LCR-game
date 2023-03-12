@@ -1,5 +1,20 @@
 import { DiceDirection } from "./dice-direction.enum";
+import { InputParameters } from "./inputParameters";
 import { Player } from "./player.class";
+
+export class GameCounter {
+  private count: number = 0;
+
+  constructor() { }
+
+  public getCount(): number {
+    return this.count;
+  }
+
+  public increment(): void {
+    this.count++;
+  }
+}
 
 export class Game {
   private players: Player[];
@@ -9,11 +24,18 @@ export class Game {
   private playerWinner: Player | null = null;
   private dices: string[] = [];
 
-  constructor(players: Player[], dices: string[]) {
-    this.players = players;
+  constructor(
+    inputParameters: InputParameters,
+    private gameCounter: GameCounter,
+  ) {
+    this.gameCounter.increment();
+
+    const [playersLength, dicesDirections] = inputParameters.getParametersParsed();
+
+    this.players = Array.from({ length: playersLength }, () => new Player());
     this.nextPlayerIndex = 0;
     this.numberOfPlayers = this.players.length;
-    this.dices = dices;
+    this.dices = dicesDirections;
   }
 
   /**
@@ -48,10 +70,13 @@ export class Game {
 
         return messageRow;
       })
-      .concat(`Center: ${this.centralPile}`)
       .join('\n')
 
-    console.log(messageContent);
+    console.log(
+      `Game: ${this.gameCounter.getCount()}` + '\n' +
+      messageContent + '\n' +
+      `Center: ${this.centralPile}`
+    );
   }
 
   /**
@@ -59,7 +84,7 @@ export class Game {
    * @param dices Dados
    */
   start(): void {
-    if (this.numberOfPlayers < 3) {
+    if (!(this.numberOfPlayers >= 3 && this.dices?.length > 0)) {
       return;
     }
 

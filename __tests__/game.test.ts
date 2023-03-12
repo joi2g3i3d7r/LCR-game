@@ -1,30 +1,18 @@
-import * as args from '../src/args';
-import { Game } from '../src/game.class';
-import { Player } from '../src/player.class';
+import { Game, GameCounter } from '../src/game.class';
+import { InputParameters } from '../src/inputParameters';
 
-// const [playersLength, dicesDirections] = getArguments();
-// const players = Array.from({ length: playersLength }, () => new Player())
-// const game = new Game(players, dicesDirections);
-
-// game.showParameters();
-
-// // Mockear la función getArguments para devolver un objeto con valores estáticos
-// jest.mock('../src/args', () => ({
-//   getArguments: jest.fn().mockReturnValue([3, 'LR.CCR.L.RLLLCLR.LL..R...CLR.'.split('')]),
-// }));
-
-describe('start game', () => {
+describe('test game', () => {
   it('should show one winner with (W)', () => {
-    jest.spyOn(args, 'getArguments').mockReturnValueOnce([3, 'LR.CCR.L.RLLLCLR.LL..R...CLR.'.split('')]);
-    const consoleLogSpy = jest.spyOn(console, 'log');
+    const inputParams = new InputParameters('3', 'LR.CCR.L.RLLLCLR.LL..R...CLR.');
+    const gameCounter = new GameCounter();
+    const game = new Game(inputParams, gameCounter);
 
-    const [playersLength, dicesDirections] = args.getArguments();
-    const players = Array.from({ length: playersLength }, () => new Player());
-    const game = new Game(players, dicesDirections);
+    const consoleLogSpy = jest.spyOn(console, 'log');
 
     game.start();
 
     expect(consoleLogSpy).toHaveBeenCalledWith(
+      'Game: 1' + '\n' +
       'Player 1: 0' + '\n' +
       'Player 2: 0' + '\n' +
       'Player 3: 6(W)' + '\n' +
@@ -33,16 +21,16 @@ describe('start game', () => {
   });
 
   it('should who is the next player with (*)', () => {
-    jest.spyOn(args, 'getArguments').mockReturnValueOnce([5, 'RL....C.L'.split('')]);
-    const consoleLogSpy = jest.spyOn(console, 'log');
+    const inputParams = new InputParameters('5', 'RL....C.L');
+    const gameCounter = new GameCounter();
+    const game = new Game(inputParams, gameCounter);
 
-    const [playersLength, dicesDirections] = args.getArguments();
-    const players = Array.from({ length: playersLength }, () => new Player());
-    const game = new Game(players, dicesDirections);
+    const consoleLogSpy = jest.spyOn(console, 'log');
 
     game.start();
 
     expect(consoleLogSpy).toHaveBeenCalledWith(
+      'Game: 1' + '\n' +
       'Player 1: 1' + '\n' +
       'Player 2: 4' + '\n' +
       'Player 3: 1' + '\n' +
@@ -53,12 +41,11 @@ describe('start game', () => {
   });
 
   it(`shouldn't show something in console if there are no players`, () => {
-    jest.spyOn(args, 'getArguments').mockReturnValueOnce([0, ''.split('')]);
-    const consoleLogSpy = jest.spyOn(console, 'log');
+    const inputParams = new InputParameters('0', '');
+    const gameCounter = new GameCounter();
+    const game = new Game(inputParams, gameCounter);
 
-    const [playersLength, dicesDirections] = args.getArguments();
-    const players = Array.from({ length: playersLength }, () => new Player());
-    const game = new Game(players, dicesDirections);
+    const consoleLogSpy = jest.spyOn(console, 'log');
 
     game.start();
 

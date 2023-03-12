@@ -1,12 +1,25 @@
-import { getArguments } from './args';
-import { Game } from './game.class';
-import { Player } from './player.class';
+import readline from 'readline';
+import { Game, GameCounter } from './game.class';
+import { InputParameters } from './inputParameters';
 
-const [playersLength, dicesDirections] = getArguments();
-const players = Array.from({ length: playersLength }, () => new Player())
-const game = new Game(players, dicesDirections);
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
-game.start();
+const gameCounter = new GameCounter();
+
+rl.on('line', (line: string) => {
+
+  const args = line.split(' ');
+  const inputArguments = new InputParameters(args[0], args[1]);
+  const game = new Game(inputArguments, gameCounter);
+
+  game.start();
+
+});
+
+
 
 
 // const j1 = new Player();
