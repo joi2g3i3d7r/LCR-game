@@ -1,5 +1,5 @@
 export class Player {
-  public chips: number = 3;
+  public chips = 3;
 
   /**
    * Pasar la ficha al compañero

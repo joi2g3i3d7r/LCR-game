@@ -1,0 +1,56 @@
+service: aws-lambda-culqui-challengue-sample
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+      - 'sqs:SendMessage'
+      Resource:
+        - Fn::GetAtt: [MyQueue, Arn]
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource:
+        - Fn::GetAtt: [GameResultTable, Arn]
+  environment:
+    MY_QUEUE_URL:
+      Ref: MyQueue
+
+functions:
+  entry-game:
+    handler: src/functions/entry.handler
+    events:
+      - http:
+          path: api/v1/game-lcr
+          method: get
+  process-game:
+    handler: src/functions/game.handler
+    events:
+      - sqs:
+          arn: "arn:aws:sqs:us-east-1:121947238296:queue-lcr-game"
+
+resources:
+  Resources:
+    MyQueue:
+      Type: 'AWS::SQS::Queue'
+      Properties:
+        QueueName: queue-lcr-game
+    GameResultTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        TableName: 'GameResultTable'
+        AttributeDefinitions:
+          - AttributeName: 'id'
+            AttributeType: S
+        KeySchema:
+          - AttributeName: 'id'
+            KeyType: 'HASH'
+        BillingMode: 'PAY_PER_REQUEST'
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline

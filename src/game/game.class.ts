@@ -1,33 +1,22 @@
-import { DiceDirection } from "./dice-direction.enum";
-import { InputParameters } from "./inputParameters";
-import { Player } from "./player.class";
-
-export class GameCounter {
-  private count: number = 0;
-
-  constructor() { }
-
-  public getCount(): number {
-    return this.count;
-  }
-
-  public increment(): void {
-    this.count++;
-  }
-}
+import { DiceDirection } from './dice-direction.enum';
+import { GameCounter } from './game-counter.class';
+import { InputParameters } from './inputParameters';
+import { Player } from './player.class';
 
 export class Game {
   private players: Player[];
+
   private centralPile = 0;
+
   private numberOfPlayers: number;
+
   private nextPlayerIndex: number;
+
   private playerWinner: Player | null = null;
+
   private dices: string[] = [];
 
-  constructor(
-    inputParameters: InputParameters,
-    private gameCounter: GameCounter,
-  ) {
+  constructor(inputParameters: InputParameters, private gameCounter: GameCounter) {
     this.gameCounter.increment();
 
     const [playersLength, dicesDirections] = inputParameters.getParametersParsed();
@@ -57,7 +46,7 @@ export class Game {
    * * En caso tengamos un ganador indica quien es el ganador
    * de lo contrario muestra quién sería el siguiente jugador que lo toca tirar los dados
    */
-  private printSummaryOfGame(): void {
+  private getSummaryOfGame(): string {
     const messageContent = this.players
       .map((player, index) => {
         let messageRow = `Player ${index + 1}: ${player.chips}`;
@@ -70,31 +59,29 @@ export class Game {
 
         return messageRow;
       })
-      .join('\n')
+      .join('\n');
 
-    console.log(
-      `Game: ${this.gameCounter.getCount()}` + '\n' +
-      messageContent + '\n' +
-      `Center: ${this.centralPile}`
-    );
+    return `Game: ${this.gameCounter.getCount()}\n${messageContent}\nCenter: ${this.centralPile}`;
   }
 
   /**
    * Función principal para comenzar el juego
    * @param dices Dados
    */
-  start(): void {
+  start(): string | null {
     if (!(this.numberOfPlayers >= 3 && this.dices?.length > 0)) {
-      return;
+      return null;
     }
 
-    while (true) {
+    let gameOver = false;
+
+    while (!gameOver) {
       // Validar si ya tenemos un ganador
       const winners = this.players.filter((player: Player) => player.chips > 0);
 
       if (winners.length === 1) {
-        this.playerWinner = winners[0];
-        this.printSummaryOfGame();
+        this.playerWinner = winners.at(0) as Player;
+        gameOver = true;
         break;
       }
 
@@ -102,17 +89,21 @@ export class Game {
       const chips: number = Math.min(currentPlayer.chips, 3);
       const dicesDirections: string[] = this.dices.splice(0, chips);
 
-      for (const diceDirection of dicesDirections) {
+      dicesDirections.forEach(diceDirection => {
         switch (diceDirection) {
-          case DiceDirection.LEFT:
-            const playerLeft = this.players[(this.nextPlayerIndex + 1) % this.numberOfPlayers];
+          case DiceDirection.LEFT: {
+            const leftPlayerIndex = (this.nextPlayerIndex + 1) % this.numberOfPlayers;
+            const playerLeft = this.players.at(leftPlayerIndex) as Player;
             currentPlayer.passChip(playerLeft);
             break;
+          }
 
-          case DiceDirection.RIGHT:
-            const playerRight = this.players[(this.nextPlayerIndex - 1 + this.numberOfPlayers) % this.numberOfPlayers];
+          case DiceDirection.RIGHT: {
+            const rightPlayerIndex = (this.nextPlayerIndex - 1 + this.numberOfPlayers) % this.numberOfPlayers;
+            const playerRight = this.players.at(rightPlayerIndex) as Player;
             currentPlayer.passChip(playerRight);
             break;
+          }
 
           case DiceDirection.CENTER:
             this.centralPile += currentPlayer.putInCentralPile();
@@ -121,15 +112,17 @@ export class Game {
           default:
             break;
         }
-      }
+      });
 
       this.nextPlayerIndex = (this.nextPlayerIndex + 1) % this.numberOfPlayers;
 
       // Comprobar si no hay dados por jugar
       if (this.dices.length === 0) {
-        this.printSummaryOfGame();
+        gameOver = true;
         break;
       }
     }
+
+    return this.getSummaryOfGame();
   }
 }
